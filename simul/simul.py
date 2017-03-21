@@ -45,6 +45,7 @@ def initialize(N,L):
 		pr.append(particle(np.random.uniform(-L/2, L/2),np.random.uniform(-L/2, L/2),np.random.uniform(-L/2, L/2)))
 	return pr
 
+# shouldn't I take the derivate :P?
 def lennard_jones(r):
 	return 4*(1/r**12-1/r**6)
 
