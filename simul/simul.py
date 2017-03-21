@@ -46,7 +46,7 @@ def initialize(N,L):
 	return pr
 
 def lennard_jones(r):
-	return 4*(1/r**12-1/x**6)
+	return 4*(1/r**12-1/r**6)
 
 def potential(particle,particle_istance,L):
 	#shit, this will be challenging
