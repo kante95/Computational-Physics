@@ -50,13 +50,14 @@ def lennard_jones(r):
 	return 4*(1/r**12-1/r**6)
 
 def potential(particle,particle_istance,L):
-	#shit, this will be challenging
+	total = 0
 	for i in particle_istance:
 		dist = particle.distance(i,L)
 		if dist<L/2:
-			return lennard_jones(dist)
+			total += lennard_jones(dist)
+	return total
 
-
+	
 def simulation(num_particle,L, density, temperature time, step):
 	particle = initialize(num_particle, L)
 	
