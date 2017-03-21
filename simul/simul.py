@@ -55,12 +55,13 @@ def potential(particle,particle_istance,L):
 		dist = particle.distance(i,L)
 		if dist<L/2:
 			total += lennard_jones(dist)
-	return total
+	return total #i must return a particle istance! not a number wtf! the direction is given by the relative distance versor, i need to calculate that
 
 	
-def simulation(num_particle,L, density, temperature time, step):
+def simulation(num_particle,L, density, temperature, time, step):
 	particle = initialize(num_particle, L)
 	
+	m=1
 	#verlet algorithm
 	mesh = np.arange(0,time,step)
 	supermegaipermatrix = [initialize(num_particle,L) for i in mesh] #oh yeah mothafucka!
