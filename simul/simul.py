@@ -25,7 +25,7 @@ class particle:
 def initialize(N,L):
 	i = np.floor(nthroot(N,3))
 	#what?!! three for cycles in a single line O.O
-	pr = [particle(j - L/2,k - L/2,m - L/2) for j in np.arange(0,i,L/i) for k in np.arange(0,i,L/i) for m in np.arange(0,i,L/i)]
+	pr = [particle(j - L/2,k - L/2,m - L/2) for j in np.arange(0,i+1,L/(i-1)) for k in np.arange(0,i+1,L/(i-1)) for m in np.arange(0,i+1,L/(i-1))]
 	#RANDOM PARTICLES!
 	for j in np.arange(N-i**3):
 		pr.append(particle(np.random.uniform(-L/2, L/2),np.random.uniform(-L/2, L/2),np.random.uniform(-L/2, L/2)))
@@ -42,3 +42,6 @@ def simulation(num_particle, density, time, step):
 	return P
 
 a = initialize(125,5)
+print len(a)
+for i in a:
+	print i
