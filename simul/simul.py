@@ -80,6 +80,8 @@ def simulation(num_particles,L, density, temperature, time, step, integration="v
 			newstate = initialize_empty(num_particles)
 			for i in range(len(current_state)):
 				newstate[i].position = 2*current_state[i].position - previous_state[i].position + forza(i,current_state,L)
+				newstate[i].position = newstate[i].position - L*np.round(newstate[i].position/L)
+				#print newstate[i].position
 
 
 
