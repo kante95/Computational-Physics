@@ -5,7 +5,6 @@ import matplotlib
 import numpy as np
 import math
 
-
 #It sucks but i have to do it :(
 def nthroot(x, n):
 		r = 1
@@ -13,69 +12,82 @@ def nthroot(x, n):
 		        r = (((n - 1) * r) + x / (r ** (n - 1))) / n
 		return r
 
-def particle_rint(p):
-	return particle(np.round(p.x),np.round(p.y),np.round(p.z))
-
 #This is a particle
 class particle:
-	def __init__(self, x, y, z):
-		self.x = x
-		self.y = y
-		self.z = z
+	def __init__(self, x, y, z, vx, vy, vz):
+		self.position = np.array([x,y,z])
+		self.speed = np.array([vx,vy,vz])
 	def __str__(self):
-		return "("+str(self.x)+","+str(self.y)+","+str(self.z)+")"
-	def __add__(self, other):
-		return particle(self.x+other.x,self.y+other.y,self.z+other.z)
-	def __sub__(self, other):
-		return particle(self.x-other.x,self.y-other.y,self.z-other.z)
-	def __mul__(self, other):
-		return particle(self.x*other,self.y*other,self.z*other)
-	def __truediv__(self, other):
-		return particle(self.x/other,self.y/other,self.z/other)
-	def distance(self,other,L):
-		dist = self-other - L*particle_rint((self-other)/L)
-		return (dist.x**2+dist.y**2+dist.z**2)**0.5
+		return self.position
 
 def initialize(N,L):
 	i = np.floor(nthroot(N,3))
 	#what?!! three for cycles in a single line O.O
-	pr = [particle(j - L/2,k - L/2,m - L/2) for j in np.arange(0,i+1,L/(i-1)) for k in np.arange(0,i+1,L/(i-1)) for m in np.arange(0,i+1,L/(i-1))]
+	pr = [particle(j - L/2,k - L/2,m - L/2,0,0,0) for j in np.arange(0,i+1,L/(i-1)) for k in np.arange(0,i+1,L/(i-1)) for m in np.arange(0,i+1,L/(i-1))]
 	#RANDOM PARTICLES!
 	for j in np.arange(N-i**3):
-		pr.append(particle(np.random.uniform(-L/2, L/2),np.random.uniform(-L/2, L/2),np.random.uniform(-L/2, L/2)))
+		pr.append(particle(np.random.uniform(-L/2, L/2),np.random.uniform(-L/2, L/2),np.random.uniform(-L/2, L/2),0,0,1))
 	return pr
 
-# shouldn't I take the derivate :P?
-def lennard_jones(r):
-	return 4*(1/r**12-1/r**6)
+def lennard_jones_derivative(r):
+	den = r[0]**2+r[1]**2 +r[2]**2
+	return np.array([4*(-14*r[0]/den**7 + 8*r[0]/den**4),4*(-14*r[1]/den**7 + 8*r[1]/den**4),4*(-14*r[2]/den**7 + 8*r[2]/den**4)])
 
-def potential(particle,particle_istance,L):
+def forza(particle,state,L):
 	total = 0
-	for i in particle_istance:
-		dist = particle.distance(i,L)
+	for i in range(len(state)):
+		if particle == i:
+			continue
+		r = (state[particle].position-state[i].position) - np.round((state[particle].position-state[i].position)/L)
+		dist = (r[0]**2+r[1]**2 +r[2]**2)**0.5
 		if dist<L/2:
-			total += lennard_jones(dist)
-	return total #i must return a particle istance! not a number wtf! the direction is given by the relative distance versor, i need to calculate that
+			total += lennard_jones_derivative(r)
+	return total 
 
+def initialize_empty(N):
+	return [particle(0,0,0,0,0,0) for i in range(N)]
 	
-def simulation(num_particle,L, density, temperature, time, step):
-	particle = initialize(num_particle, L)
-	
-	m=1
-	#verlet algorithm
+def simulation(num_particles,L, density, temperature, time, step, integration="verlet"):
+	print "Inizializzo lo stato iniziale...."
+	state = initialize(num_particles, L)
+
+	average = 0
+	#velocity verlet algorithm
 	mesh = np.arange(0,time,step)
-	supermegaipermatrix = [initialize(num_particle,L) for i in mesh] #oh yeah mothafucka!
-	np.insert(supermegaipermatrix,[0],particle)
+	if integration=="velocity_verlet":
+		for t in mesh:
+			print "Simulando secondo "+str(t)+" s"
+			newstate = initialize_empty(num_particles)
+			accelleration = []
+			for j in range(len(state)):
+				accelleration.append(forza(j,state,L))
+				newstate[j].position = state[j].position + state[j].speed*step + 0.5*accelleration[-1]*step**2
+				newstate[j].position = newstate[j].position - L*np.round(newstate[j].position/L)
+			for j in range(len(state)):
+				newstate[j].speed = state[j].speed + 0.5*(accelleration[j] + forza(j,newstate,L))*step
+			state = newstate
+	elif integration=="verlet":
+		
+		newstate = initialize_empty(num_particles)
+		current_state = state
+		for i in range(len(state)):
+			newstate[i].position = state[i].position + state[i].speed*step + 0.5*forza(i,state,L) 
+		
+		for t in mesh[1:]:
+			print "Simulando secondo "+str(t)+" s"
+			previous_state = current_state
+			current_state = newstate
+			newstate = initialize_empty(num_particles)
+			for i in range(len(current_state)):
+				newstate[i].position = 2*current_state[i].position - previous_state[i].position + forza(i,current_state,L)
 
-	for t in range(len(mesh)-1):
-		for j in range(len(particle)):
-			new_coordinate = 2*supermegaipermatrix[j][t]-supermegaipermatrix[j][t-1]-(1/m)*potential(j,supermegaipermatrix[:][t],L) #will this create a new supermegaipermatrix in my memory? I hope it doesn't
-			supermegaipermatrix[j][t+1] = new_coordinata - L*particle_rint(new_coordinata/L) #boundary condition
 
 
-	#time avarage
+		#average =  what da fuck have i to put here??
+
+	#time average
 	#P = 
 
 	#return P
 
-simulation(125,5,1,273,10,1)
+simulation(125,5,1,273,3,0.1)
