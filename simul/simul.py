@@ -41,7 +41,7 @@ def forza(particle,state,L):
 		r = (state[particle].position-state[i].position) - np.round((state[particle].position-state[i].position)/L)
 		dist = (r[0]**2+r[1]**2 +r[2]**2)**0.5
 		if dist<L/2:
-			total += lennard_jones_derivative(r)
+			total -= lennard_jones_derivative(r)
 	return total 
 
 def initialize_empty(N):
