@@ -1,6 +1,6 @@
 from __future__ import division
-import matplotlib.pyplot as plt
-import matplotlib
+#import matplotlib.pyplot as plt
+
 # -*- coding: utf-8 -*-
 import numpy as np
 import math
@@ -56,32 +56,34 @@ def simulation(num_particles,L, density, temperature, time, step, integration="v
 	mesh = np.arange(0,time,step)
 	if integration=="velocity_verlet":
 		for t in mesh:
-			print "Simulando secondo "+str(t)+" s"
+			#print "Simulando secondo "+str(t)+" s"
 			newstate = initialize_empty(num_particles)
 			accelleration = []
 			for j in range(len(state)):
 				accelleration.append(forza(j,state,L))
 				newstate[j].position = state[j].position + state[j].speed*step + 0.5*accelleration[-1]*step**2
 				newstate[j].position = newstate[j].position - L*np.round(newstate[j].position/L)
+				#print newstate[j].position
 			for j in range(len(state)):
 				newstate[j].speed = state[j].speed + 0.5*(accelleration[j] + forza(j,newstate,L))*step
+
+
 			state = newstate
 	elif integration=="verlet":
-		
 		newstate = initialize_empty(num_particles)
 		current_state = state
 		for i in range(len(state)):
-			newstate[i].position = state[i].position + state[i].speed*step + 0.5*forza(i,state,L) 
-		
+			newstate[i].position = state[i].position + state[i].speed*step + 0.5*forza(i,state,L)*step**2
+			#print newstate[i].position
 		for t in mesh[1:]:
 			print "Simulando secondo "+str(t)+" s"
 			previous_state = current_state
 			current_state = newstate
 			newstate = initialize_empty(num_particles)
 			for i in range(len(current_state)):
-				newstate[i].position = 2*current_state[i].position - previous_state[i].position + forza(i,current_state,L)
+				newstate[i].position = 2*current_state[i].position - previous_state[i].position + forza(i,current_state,L)*step**2
 				newstate[i].position = newstate[i].position - L*np.round(newstate[i].position/L)
-				#print newstate[i].position
+				
 
 
 
@@ -92,4 +94,4 @@ def simulation(num_particles,L, density, temperature, time, step, integration="v
 
 	#return P
 
-simulation(125,5,1,273,3,0.1)
+simulation(125,5,1,273,3,0.01,integration="verlet")
