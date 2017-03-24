@@ -76,7 +76,7 @@ def simulation(num_particles,L, density, temperature, time, step, integration="v
 			newstate[i].position = state[i].position + state[i].speed*step + 0.5*forza(i,state,L)*step**2
 			#print newstate[i].position
 		for t in mesh[1:]:
-			print "Simulando secondo "+str(t)+" s"
+			#print "Simulando secondo "+str(t)+" s"
 			previous_state = current_state
 			current_state = newstate
 			newstate = initialize_empty(num_particles)
