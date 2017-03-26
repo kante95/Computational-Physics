@@ -22,22 +22,26 @@ end
 
 lennard_jones(r) = 4(r^-12 - r^-6)
 
-function lennard_jones_derivative(r)
+function lennard_jones_derivative!(r,returning)
     den = r[1]^2+r[2]^2 +r[3]^2
-    return -[4(-14r[1]*den^-7 + 8r[1]*den^-4),4(-14r[2]*den^-7 + 8r[2]*den^-4),4(-14r[3]*den^-7 + 8r[3]*den^-4)]
+    returning[1] = -4(-14r[1]*den^-7 + 8r[1]*den^-4)
+    returning[2] = -4(-14r[2]*den^-7 + 8r[2]*den^-4)
+    returning[3] = -4(-14r[3]*den^-7 + 8r[3]*den^-4)
 end
 
 
 function calculate_accellerations_and_potential(positions,N,L)
     accelerations = zeros(positions)
     potentials = zeros(125)
+    force = Array{Float64}(3)
     for i ∈ 1:N
        for j ∈ i+1:N
             r = positions[i,:]-positions[j,:]-round((positions[i,:]-positions[j,:])/L)
             dist = √(r[1]^2+r[2]^2 +r[3]^2)
             if dist<L/2
-                accelerations[i,:] += lennard_jones_derivative(r)
-                accelerations[j,:] -= lennard_jones_derivative(r)
+                lennard_jones_derivative!(r,force)
+                accelerations[i,:] += force
+                accelerations[j,:] -= force
                 potentials[i] += lennard_jones(dist)
                 potentials[j] += lennard_jones(dist)
             end
