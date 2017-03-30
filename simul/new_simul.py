@@ -23,7 +23,7 @@ def lennard_jones(r):
 
 def lennard_jones_derivative(r):
 	den = r[0]**2+r[1]**2 +r[2]**2
-	return -np.array([4*(-14*r[0]*den**-7 + 8*r[0]*den**-4),4*(-14*r[1]*den**-7 + 8*r[1]*den**-4),4*(-14*r[2]*den**-7 + 8*r[2]*den**-4)])
+	return -np.array([4*(-12*r[0]*den**-7 + 6*r[0]*den**-4),4*(-12*r[1]*den**-7 + 6*r[1]*den**-4),4*(-12*r[2]*den**-7 + 6*r[2]*den**-4)])
 
 def calculate_accellerations_and_potential(positions,N,L):
 	accelerations = np.zeros((125,3))

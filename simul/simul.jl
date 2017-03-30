@@ -12,9 +12,9 @@ function initialize(N,L,temperature)
                 positions[index,1]= j - L/2
                 positions[index,2] = k - L/2
                 positions[index,3] = m - L/2
-                velocities[index,1]= normal_rand(temperature)
-                velocities[index,2] = normal_rand(temperature)
-                velocities[index,3] = normal_rand(temperature)
+                velocities[index,1]= normal_rand(√temperature)
+                velocities[index,2] = normal_rand(√temperature)
+                velocities[index,3] = normal_rand(√temperature)
                 index+=1
             end
         end
@@ -31,9 +31,9 @@ lennard_jones(r) =  4(r^-12 - r^-6)
 
 function lennard_jones_derivative!(r,returning)
     den = r[1]^2+r[2]^2 +r[3]^2
-    returning[1] = -4(-14r[1]*den^-7 + 8r[1]*den^-4)
-    returning[2] = -4(-14r[2]*den^-7 + 8r[2]*den^-4)
-    returning[3] = -4(-14r[3]*den^-7 + 8r[3]*den^-4)
+    returning[1] = -4(-12r[1]*den^-7 + 6r[1]*den^-4)
+    returning[2] = -4(-12r[2]*den^-7 + 6r[2]*den^-4)
+    returning[3] = -4(-12r[3]*den^-7 + 6r[3]*den^-4)
 end
 
 function calculate_accellerations_and_potential(positions,N,L)
@@ -55,6 +55,7 @@ function calculate_accellerations_and_potential(positions,N,L)
     end
     return accelerations,potentials
 end
+
 
 function simulation(num_particles, density, temperature, time, step)
     V = num_particles/density
@@ -87,5 +88,5 @@ function simulation(num_particles, density, temperature, time, step)
 end
 
 #for ρ ∈ [0.1,0.01,0.001]
-    simulation(125,0.01,273,5.0,0.01)
+    simulation(125,0.01,273,5.0,0.001)
 #end
