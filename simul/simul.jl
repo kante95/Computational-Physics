@@ -1,3 +1,6 @@
+using Gadfly
+
+
 #Box-Muller formula
 normal_rand(std) = √(-2(std^2)*log(1-rand(Float64)))*cospi(2rand(Float64))
 
@@ -6,9 +9,9 @@ function initialize(N,L,temperature)
     positions = zeros(N,3)
     velocities = zeros(N,3)
     index = 1
-    for j ∈ 0:L/(i-1):i+1
-        for k ∈ 0:L/(i-1):i+1
-            for m ∈ 0:L/(i-1):i+1
+    for j ∈ 0:L/(i):L-L/(i)
+        for k ∈ 0:L/(i):L-L/(i)
+            for m ∈ 0:L/(i):L-L/(i)
                 positions[index,1]= j - L/2
                 positions[index,2] = k - L/2
                 positions[index,3] = m - L/2
@@ -28,6 +31,7 @@ function initialize(N,L,temperature)
 end
 
 lennard_jones(r) =  4(r^-12 - r^-6)
+lennard_jones_derivative_scalar(r) = -48r^-13 +24r^-7
 
 function lennard_jones_derivative!(r,returning)
     den = r[1]^2+r[2]^2 +r[3]^2
@@ -36,57 +40,84 @@ function lennard_jones_derivative!(r,returning)
     returning[3] = -4(-12r[3]*den^-7 + 6r[3]*den^-4)
 end
 
-function calculate_accellerations_and_potential(positions,N,L)
+function calculate_accellerations_and_potential_and_partial_pressure(positions,N,L)
     accelerations = zeros(positions)
     potentials = zeros(125)
     force = Array{Float64}(3)
+    partial_pressure = 0    
     for i ∈ 1:N
         for j ∈ i+1:N
             r = positions[i,:]-positions[j,:]-round((positions[i,:]-positions[j,:])/L)
-            dist = √(r[1]^2+r[2]^2 +r[3]^2)
-            if dist<L/2
+            dist = (r[1]^2+r[2]^2 +r[3]^2)^2
+           
+            if dist<L/2 && dist !=0
                 lennard_jones_derivative!(r,force)
                 accelerations[i,:] += force
                 accelerations[j,:] -= force
                 potentials[i] += lennard_jones(dist)
                 potentials[j] += lennard_jones(dist)
             end
+            partial_pressure += lennard_jones_derivative_scalar(dist)*dist
+
         end
     end
-    return accelerations,potentials
+    return accelerations,potentials, partial_pressure
 end
 
 
 function simulation(num_particles, density, temperature, time, step)
     V = num_particles/density
     L = ∛V
-    print("Inizializzo lo stato iniziale....\n")
+    pressure = 0
+    #print("Inizializzo lo stato iniziale....\n")
     positions,velocities = initialize(num_particles, L,temperature)
     #velocity verlet algorithm
-    current_accelerations,current_potentials = calculate_accellerations_and_potential(positions,num_particles,L)
+    current_accelerations,current_potentials,partial_pressure = calculate_accellerations_and_potential_and_partial_pressure(positions,num_particles,L)
+    pressure += partial_pressure
     for t ∈ step:step:time
-        #print("$positions")
+        #print("$positions\n")
         #print("Simulando secondo "+str(t)+" s")
         #calcolo le nuove posizioni
         #print("$shape(positions) $shape(velocities)")
         positions = positions + velocities*step + 0.5current_accelerations*step^2
         positions = positions - L*round(positions/L)
         #accelerazioni dovute alle nuove posizioni
-        new_accelerations,new_potentials = calculate_accellerations_and_potential(positions,num_particles,L)
+        new_accelerations,new_potentials,partial_pressure = calculate_accellerations_and_potential_and_partial_pressure(positions,num_particles,L)
+        pressure += partial_pressure
         #nuove velocita che si calcolano con le vecchie e le nuove accelerazioni
         velocities = velocities + 0.5(current_accelerations + new_accelerations)step
         #aggiorno le accelerazioni per il prossimo ciclo
         current_accelerations = new_accelerations
         current_potentials = new_potentials
         energy = 0.5sum(velocities[:][1]^2+velocities[:][2]^2+velocities[:][3]^2) + sum(current_potentials)
-        print("Energy at second $t: $energy \n")
+        #print("Energy at second $t: $energy, Partial pressure: $pressure\n")
     end
-        #average =  what da fuck have i to put here??
+    return density*temperature - (1/3)*pressure/length(0:step:time)    
+    #average =  what da fuck have i to put here??
     #time average
     #P = 
     #return P
 end
 
-#for ρ ∈ [0.1,0.01,0.001]
-    simulation(125,0.01,273,5.0,0.001)
-#end
+
+temp = logspace(0,3,10)
+ρ = logspace(-3,0,50)
+pression = zeros(Float64,length(ρ))
+volume = zeros(Float64,length(ρ))
+
+indx = 0
+for t∈temp
+    for i=1:length(ρ)
+        pression[i] = simulation(125,ρ[i],t,0.01,0.00001)
+        volume[i] = 125/ρ[i]
+        c = ρ[i]
+        print("Sono arrivato ad temp: $t, desità: $c\n")
+        #print("Pressione a densità $ρ: $pression\n") 
+    writedlm("/tmp/test$indx.txt",hcat(pression,volume), ",")
+    end
+    indx +=1
+end
+
+#myplot = plot(x=volume,y=pression)
+#draw(PDF("myplot.pdf", 4inch, 3inch), myplot)
+
