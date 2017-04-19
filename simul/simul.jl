@@ -1,5 +1,4 @@
-using Gadfly
-
+using ArgParse
 
 #Box-Muller formula
 normal_rand(std) = √(-2(std^2)*log(1-rand(Float64)))*cospi(2rand(Float64))
@@ -90,34 +89,55 @@ function simulation(num_particles, density, temperature, time, step)
         current_accelerations = new_accelerations
         current_potentials = new_potentials
         energy = 0.5sum(velocities[:][1]^2+velocities[:][2]^2+velocities[:][3]^2) + sum(current_potentials)
-        #print("Energy at second $t: $energy, Partial pressure: $pressure\n")
+        print("Energy at second $t: $energy, Partial pressure: $pressure\n")
     end
     return density*temperature - (1/3)*pressure/length(0:step:time)    
-    #average =  what da fuck have i to put here??
-    #time average
-    #P = 
-    #return P
+end
+
+function parse_commandline()
+    s = ArgParseSettings()
+    @add_arg_table s begin
+        "--temp"
+            help = "Temperature to simulate, if not provided a range of temperature will be simulated"
+            arg_type = Int
+            default = 0
+        "--density"
+            help = "Numbers of density to simulate"
+            arg_type = Int
+            default = 20
+        "--timestep"
+            help = "Time step"
+            arg_type = Float64
+            default = 0.00001
+        "--step"
+            help = "Number of step to simulate"
+            arg_type = Int
+            default = 100000
+
+    end
+    return parse_args(s)
 end
 
 
-temp = logspace(0,3,10)
-ρ = logspace(-3,0,50)
+parsed_args = parse_commandline()
+
+if parsed_args["temp"]!=0
+    temp = parsed_args["temp"] 
+else
+    temp = logspace(0,3,8)
+end
+
+ρ = logspace(-2,0,parsed_args["density"])
 pression = zeros(Float64,length(ρ))
 volume = zeros(Float64,length(ρ))
 
-indx = 0
 for t∈temp
     for i=1:length(ρ)
-        pression[i] = simulation(125,ρ[i],t,0.01,0.00001)
+        pression[i] = simulation(125,ρ[i],t,parsed_args["step"]*parsed_args["timestep"],parsed_args["timestep"])
         volume[i] = 125/ρ[i]
         c = ρ[i]
         print("Sono arrivato ad temp: $t, desità: $c\n")
-        #print("Pressione a densità $ρ: $pression\n") 
-    writedlm("/tmp/test$indx.txt",hcat(pression,volume), ",")
+        writedlm("/tmp/simulation$t.txt",hcat(pression,volume), ",")
     end
-    indx +=1
 end
-
-#myplot = plot(x=volume,y=pression)
-#draw(PDF("myplot.pdf", 4inch, 3inch), myplot)
 
