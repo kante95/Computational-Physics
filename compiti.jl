@@ -1,9 +1,8 @@
 #Primo esercizio, calcolo di π
 
 points = 10000000
-function random(from,to)
-    return rand(Float64)*(to-from) + from
-end
+random(from,to) = rand(Float64)*(to-from) + from
+
 N = 0
 for i=1:points
     x = random(-0.5,0.5)
