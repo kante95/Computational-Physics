@@ -29,7 +29,7 @@ end
 I = (I/points)^2
 print("Valore di 1/(2π)∫x^2y^2e^{-(x^2+y^2)/2}: $I, vero: 1\n")
 
-#Terzo esercizo, integrale e^x-1 tra 0 e 1 con densità costante e uniforme
+#Terzo esercizo, integrale e^x-1 tra 0 e 1 con densità uniforme e lineare
 
 g(x) = e^x-1
 I = 0
@@ -49,5 +49,5 @@ for i=1:points
 end
 I = (I/points)
 tru = e-2
-print("Valore di ∫e^x-1: $I, vero: $tru densità uniforme\n")
+print("Valore di ∫e^x-1: $I, vero: $tru densità lineare\n")
 
