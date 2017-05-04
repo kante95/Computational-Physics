@@ -25,13 +25,13 @@ for i in 2:N
 	V+=x[i]^2/2
 	xmedio += x[i]
 	x2medio += x[i]^2
-	dxmedio = x[i]^2
-	dx2medio = x[i]^4
+	dxmedio += x[i]^2
+	dx2medio += x[i]^4
 end
 V = V/N
 xmedio = xmedio/N
 x2medio = x2medio/N
-dxmedio = sqrt(abs(dxmedio/N-xmedio^2)/N)
-dx2medio = sqrt(abs(dx2medio/N-x2medio^2)/N)
+dxmedio = sqrt((dxmedio/N-xmedio^2)/N)
+dx2medio = sqrt((dx2medio/N-x2medio^2)/N)
 acceptance_ratio = acceptance/N
-println("Valore medio x: $xmedio +/- $dxmedio, valore medio x^2: $x2medio +/- $dxmedio acceptance radio: $(acceptance_ratio*100)%")
+println("Valore medio x: $xmedio +/- $dxmedio, valore medio x^2: $x2medio +/- $dxmedio acceptance ratio: $(acceptance_ratio*100)%")
