@@ -27,23 +27,36 @@ int main(int argc, char** argv) {
 
     int i;
     float I=0;
-    for(i=world_rank*10000;i<world_rank*10000+10000;i++){
+    int npoints_core = mesh/world_size;
+    int nstart = npoints_core*world_rank;
+    int nend = npoints_core*(world_rank+1);
+    if(world_rank == world_size){
+    		nend += mesh-npoints_core*(world_size-1);
+    }
+    for(i=nstart;i<nend;i++){
     	I+=f(i*h);
     }
     if(world_rank!=0){
-    	MPI_Send(&I,1,MPI_INT,0,1,MPI_COMM_WORLD);
+    	MPI_Send(&I,1,MPI_FLOAT,0,1,MPI_COMM_WORLD);
     }
 
     if(world_rank==0){
-    	float I1,I2,I3;
-    	MPI_Recv(&I1,1,MPI_INT,1,1,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
-    	MPI_Recv(&I2,1,MPI_INT,2,1,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
-    	MPI_Recv(&I3,1,MPI_INT,3,1,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
-    	I +=I1+I2+I3;
+    	
+    	int i=0;
+    	float I1;
+
+    	for(i=1;i<world_size;i++){
+    		MPI_Recv(&I1,1,MPI_FLOAT,i,1,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+    		I+=I1;
+
+    	}
+
     	I = I*h;
     	printf("Risultato: %f\n",I);
     }
 
     // Finalize the MPI environment.
     MPI_Finalize();
+
+    return 0;
 } 
