@@ -30,8 +30,8 @@ int main(int argc, char** argv) {
     int npoints_core = mesh/world_size;
     int nstart = npoints_core*world_rank;
     int nend = npoints_core*(world_rank+1);
-    if(world_rank == world_size){
-    		nend += mesh-npoints_core*(world_size-1);
+    if(world_rank == world_size-1){
+    		nend += mesh-npoints_core*(world_size);
     }
     for(i=nstart;i<nend;i++){
     	I+=f(i*h);
@@ -42,7 +42,7 @@ int main(int argc, char** argv) {
 
     if(world_rank==0){
     	
-    	int i=0;
+    	int i;
     	float I1;
 
     	for(i=1;i<world_size;i++){
