@@ -1,10 +1,10 @@
-#using  Gadfly
-#using Cairo
+using  Gadfly
+using Cairo
 
-#my_theme = Theme(
- #   background_color=colorant"white",
-#    default_color=colorant"orange"
-#)
+my_theme = Theme(
+   background_color=colorant"white",
+    default_color=colorant"orange"
+)
 
 
 function initialize(N,L)
@@ -86,37 +86,37 @@ end
 function simulation(num_particles, density, M)
 
     #########################
-    #temp = linspace(1.5,4,5)
-    #Vt = zeros(length(temp))
-    #Vt2 = zeros(length(temp))
-    #βs = 1./temp
-    #normalization = zeros(length(temp))
+    temp = linspace(0.5,4,20)
+    Vt = zeros(length(temp))
+    Vt2 = zeros(length(temp))
+    βs = 1./temp
+    normalization = zeros(length(temp))
     #######################
 
-    temp = 1.5
     V = num_particles/density
     L = ∛V
     println("Attendi, trovo il migliore delta....")
+    #delta = -0.23density + 0.0315
     delta = find_delta(temp[1],num_particles,L)
+    #delta = 0.03
     println("Delta migliore trovato: $delta, adesso inizio la simulazione")
     acceptance = 0
 
-    β = 1/temp
+    β = 1/temp[1]
     #inizializzazione
-    positions = initialize(num_particles,L)
-   
+    positions = initialize(num_particles,L)   
     potential = calculate_potential(positions,num_particles,L)
     
-    #Vt[1] =  potential
-    #Vt2[1] =  potential^2
+    Vt[1] =  potential
+    Vt2[1] =  potential^2
 
-    Vprova = potential
+    #Vprova = potential
     
-   # for t in 2:length(temp)
-    #    Vt[t] =  potential*e^((β - βs[t])Vt[1])
-    #    Vt2[t] =  (potential^2)*e^((β - βs[t])Vt[1])
-    #    normalization = e^((β - βs[t])Vt[1])
-    #end
+    for t in 2:length(temp)
+        Vt[t] =  potential*e^((β - βs[t])Vt[1])
+        Vt2[t] =  (potential^2)*e^((β - βs[t])Vt[1])
+        normalization = e^((β - βs[t])Vt[1])
+    end
 
     #loop principale della catena
     for k ∈ 1:M
@@ -138,25 +138,34 @@ function simulation(num_particles, density, M)
             potential = new_potential
             acceptance+=1
         end
-       # Vt[1] += new_potential
-        #Vt2[1]+= new_potential^2
-        Vprova += new_potential
-        #for t in 2:length(temp)
-        #    Vt[t] +=  potential*e^((β - βs[t])new_potential)
-        #    Vt2[t] +=  (potential^2)*e^((β - βs[t])new_potential)
-        #    normalization += e^((β - βs[t])new_potential)
-       # end
+        Vt[1] += potential
+        Vt2[1]+= potential^2
+        #Vprova += potential
+        for t in 2:length(temp)
+            Vt[t] +=  potential*e^((β - βs[t])potential)
+            Vt2[t] +=  (potential^2)*e^((β - βs[t])potential)
+            normalization += e^((β - βs[t])potential)
+        end
 
     end
 
-    #for t in 2:length(temp)
-    #        Vt[t] /=  normalization 
-    #        Vt2[t] /=  normalization 
-    #       
-    #end
-    #Vt[1]/=M
-    #Vt2[1]/=M
-    println("Potenziale medio: $(Vprova/M) acceptance ratio: $(acceptance*100/M)")
+    for t in 2:length(temp)
+            Vt[t] /=  normalization 
+            Vt2[t] /=  normalization        
+    end
+    Vt[1]/=M
+    Vt2[1]/=M
+
+    println("Potenziale medio: $(Vt), potenziale medio quadro: $(Vt2), acceptance ratio: $(acceptance*100/M)")
+
+    Cv = zeros(length(temp))
+    for i ∈ 1: length(temp)
+        Cv[i] = (Vt2[i]-Vt[i]^2)/(temp[i]^2)
+    end
+
+    #plot
+    p = plot(x=temp,y=Cv,Geom.point, Geom.line,Guide.ylabel("Cv"),Guide.xlabel("Temperatura"),my_theme)
+    draw(PNG("Cv.png", 17inch, 10inch), p)
 
 end
 
