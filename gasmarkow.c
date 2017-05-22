@@ -7,6 +7,8 @@
 #define min(a,b) ((a > b)?b:a)
 
 #define N 125
+#define first_temp 0.5
+#define last_temp 3
 
 
 int find_maximum(double a[], int n) {
@@ -139,9 +141,9 @@ double simulation(float density,int M){
  	int num_temp = 50;
  	double temp[num_temp];
 	int i,t,k,j;
-	double step = 3.0/num_temp;
+	double step = (last_temp-first_temp)/num_temp;
 	for (i = 0; i < num_temp; i++) {
-		temp[i] = step*i + 1.5;
+		temp[i] = step*i + first_temp;
 	}
 
     double Vt[num_temp];
@@ -210,10 +212,11 @@ double simulation(float density,int M){
 
         for(t=0;t<num_temp;t++)
     	{
-    		Vt[t] +=  potential*pow(2.718,(beta - betas[t])*Vt_simul);
-        	Vt2[t] +=  potential*potential*pow(2.718,(beta - betas[t])*Vt_simul);
-        	normalization[t] += pow(2.7281,(beta - betas[t])*Vt_simul);
+    		Vt[t] +=  potential*pow(2.718,(beta - betas[t])*potential);
+        	Vt2[t] +=  potential*potential*pow(2.718,(beta - betas[t])*potential);
+        	normalization[t] += pow(2.7281,(beta - betas[t])*potential);
     	}
+    	//printf("temp 1.5 V: %lf V2: %lf \n",Vt[0],Vt2[0]);
     }
 
     
