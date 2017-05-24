@@ -35,7 +35,7 @@ function find_delta()
 end
 
 acceptance = 0
-N = 100000
+N = 1000000
 x = zeros(N)
 
 delta = find_delta()
@@ -71,9 +71,12 @@ acceptance_ratio = acceptance/N
 println("Valore medio x: $xmedio +/- $dxmedio, valore medio x^2: $x2medio +/- $dxmedio acceptance ratio: $(acceptance_ratio*100)%")
 
 p = plot(x=x, Geom.histogram,my_theme)
-draw(PNG("histogram.png", 17inch, 10inch), p)
+draw(PNG("histogram1.png", 17inch, 10inch), p)
 
-l = 20
+p = plot(x=x.^2, Geom.histogram,my_theme)
+draw(PNG("histogram2.png", 17inch, 10inch), p)
+
+l = 50
 c = zeros(l)
 
 D = x2medio - xmedio^2
@@ -88,5 +91,5 @@ for i in 1:l
 	c[i] = (c[i] - xmedio^2)/D
 end
 
-p = plot(x=collect(1:l),y=c, Geom.point, Geom.line,my_theme)
+p = plot(x=collect(1:l),y=c, Geom.point, Geom.line,Guide.ylabel("Ci"),Guide.xlabel("i"),my_theme)
 draw(PNG("autocorrelation.png", 17inch, 10inch), p)

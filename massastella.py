@@ -9,9 +9,13 @@ matplotlib.rc('text', usetex=True)
 
 n_range = np.arange(0,4,0.5) 
 
-h = 0.1
+h = 0.001
 
 mesh = np.arange(0,10,h)
+
+xi1 = np.zeros(len(n_range))
+
+temp =0
 
 for n in n_range:
 	theta = np.zeros(len(mesh))
@@ -42,13 +46,14 @@ for n in n_range:
 		k4 = h*(phi[i]+l3)
 		l4 = h*(-2*(phi[i]+l3)/(mesh[i]+h) - (theta[i]+k3)**n)
 		theta[i+1] = theta[i] + (k1+2*k2+2*k3+k4)/6
-		if theta[i+1]<0:
-			break
 		phi[i+1] = phi[i] + (l1+2*l2+2*l3+l4)/6
-
+		if theta[i+1]<0 or np.isnan(theta[i+1]) or np.isnan(phi[i+1]):
+			break
+		
 	theta = theta[theta!=0]
 	phi = phi[phi!=0]
-
+	xi1[temp] = mesh[i+1]
+	temp +=1
 	#print phi,theta
 
 	plt.figure(1)
@@ -56,6 +61,7 @@ for n in n_range:
 
 	plt.figure(2)
 	plt.plot(mesh[:len(phi)],phi)
+
 
 plt.figure(1)
 leg = ["n = "+ str(i) for i in n_range]
@@ -70,5 +76,9 @@ plt.legend(leg)
 plt.xlabel(r"$\xi$")
 plt.ylabel(r"$\varphi(\xi)$")
 plt.savefig("phi.png")
+
+
+plt.figure(3)
+plt.plot(n_range,xi1)
 
 plt.show()

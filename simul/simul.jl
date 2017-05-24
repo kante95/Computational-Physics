@@ -21,6 +21,23 @@ function initialize(N,L,temperature)
             end
         end
     end
+
+
+#adjust velocities so center-of-mass velocity is zero
+  vCM = zeros(3)
+  for n in 1:N
+    for i in 1:3
+      vCM[i] += velocities[n,i]
+    end
+end
+  for i = 1:3
+    vCM[i] /= N
+end
+  for n = 1:N
+    for i = 1:3
+      velocities[n,i] -= vCM[i]
+    end
+end
     #RANDOM PARTICLES! to fix
     #for j ∈ 0:N-i^3
     #    append!(position,rand(-L/2:L/2,3))
@@ -91,7 +108,7 @@ function simulation(num_particles, density, temperature, time, step)
         energy = 0.5sum(velocities[:][1]^2+velocities[:][2]^2+velocities[:][3]^2) + sum(current_potentials)
         print("Energy at second $t: $energy, Partial pressure: $pressure\n")
     end
-    return density*temperature - (1/3)*pressure/length(0:step:time)    
+    return density*temperature - (1/(3V))*pressure/length(0:step:time)    
 end
 
 function parse_commandline()
@@ -127,13 +144,13 @@ else
     temp = logspace(0,3,8)
 end
 
-ρ = logspace(-2,0,parsed_args["density"])
+ρ = logspace(-2,0,20)
 pression = zeros(Float64,length(ρ))
 volume = zeros(Float64,length(ρ))
 
 for t∈temp
     for i=1:length(ρ)
-        pression[i] = simulation(125,ρ[i],t,parsed_args["step"]*parsed_args["timestep"],parsed_args["timestep"])
+        pression[i] = simulation(125,ρ[i],temp,0.1,0.00001)
         volume[i] = 125/ρ[i]
         c = ρ[i]
         print("Sono arrivato ad temp: $t, desità: $c\n")

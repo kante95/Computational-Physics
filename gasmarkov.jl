@@ -34,7 +34,7 @@ function calculate_potential(positions,N,L)
     for i ∈ 1:N
         for j ∈ i+1:N
             r = positions[i,:]-positions[j,:]-round((positions[i,:]-positions[j,:])/L)
-            dist = (r[1]^2+r[2]^2 +r[3]^2)^2
+            dist = (r[1]^2+r[2]^2 +r[3]^2)^(1/2)
            
             if dist<L/2 && dist !=0
                 potential += 2lennard_jones(dist)
@@ -52,10 +52,10 @@ function find_delta(temperature,num_particles,L)
     acceptance_ratio = 0
     β = 1/temperature
 
-    positions = initialize(num_particles,L)
-    potential = calculate_potential(positions,num_particles,L)
 
-    while acceptance_ratio<45 || acceptance_ratio > 55
+    while acceptance_ratio<35 || acceptance_ratio > 65
+        positions = initialize(num_particles,L)
+        potential = calculate_potential(positions,num_particles,L)
         new_positions = zeros(num_particles,3)
         for i ∈ 1:3
             for j ∈ 1:num_particles
@@ -73,17 +73,24 @@ function find_delta(temperature,num_particles,L)
             acceptance+=1
         end
         steps+=1
-        if steps%10000==0
-            acceptance_ratio = acceptance/100
-            acceptance = 0
-            delta = delta*(acceptance_ratio/50)
+        if steps%1000==0
+            acceptance_ratio = acceptance/10
+            #println("Nuovo delta: $delta, $acceptance_ratio")
+            if(acceptance==0)
+                delta = delta/10
+                acceptance = 0
+            else
+                acceptance = 0
+                delta = delta*(acceptance_ratio/50)
+            end
+            #println("Nuovo delta: $delta, $acceptance_ratio")
         end 
     end
     return delta
 end
 
 
-function simulation(num_particles, density, M)
+function simulation(num_particles, density, M,nrank)
 
     temp_simul = 2
     #########################
@@ -96,11 +103,11 @@ function simulation(num_particles, density, M)
 
     V = num_particles/density
     L = ∛V
-    println("Attendi, trovo il migliore delta....")
+    println("Processore $nrank: Attendi, trovo il migliore delta....")
     #delta = -0.23density + 0.0315
-    delta = find_delta(temp_simul,num_particles,L)
+    delta = 0.05/density^(1/3)#find_delta(temp_simul,num_particles,L)
     #delta = 0.03
-    println("Delta migliore trovato: $delta, adesso inizio la simulazione")
+    println("Processore $nrank: Delta migliore trovato: $delta, adesso inizio la simulazione")
     acceptance = 0
 
     β = 1/temp_simul
@@ -147,6 +154,7 @@ function simulation(num_particles, density, M)
             Vt2[t] +=  (potential^2)*e^((β - βs[t])potential)
             normalization[t] += e^((β - βs[t])potential)
         end
+        println(k)
 
     end
 
@@ -163,18 +171,19 @@ function simulation(num_particles, density, M)
     for i ∈ 1: length(temp)
         Cv[i] = (Vt2[i]-Vt[i]^2)/(temp[i]^2)
     end
-    println("Cv: $Cv, Cv simulato: $((Vt2_simul-Vt_simul^2)/(temp_simul^2))")
+    #println("Cv: $Cv, Cv simulato: $((Vt2_simul-Vt_simul^2)/(temp_simul^2))")
 
     #plot
-    p = plot(x=temp,y=Cv,Geom.point, Geom.line,Guide.ylabel("Cv"),Guide.xlabel("Temperatura"),my_theme)
-    draw(PNG("Cv.png", 17inch, 10inch), p)
+    #p = plot(x=temp,y=Cv,Geom.point, Geom.line,Guide.ylabel("Cv"),Guide.xlabel("Temperatura"),my_theme)
+    #draw(PNG("graphs/Cv$(density).png", 17inch, 10inch), p)
 
 
     cv_max = findmax(Cv)
     temp_max = temp[cv_max[2]]
 
-    print("Temperatura massima: $temp_max, $cv_max")
+    println("Processore $nrank: Temperatura massima: $temp_max, $cv_max")
 
+    return temp_max
 end
 
-simulation(125,0.05,100000)
+simulation(125,0.3,50000,1)

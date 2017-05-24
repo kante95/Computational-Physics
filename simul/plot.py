@@ -13,9 +13,9 @@ def read_data(file):
 	return pression,volume
 
 
-for i in [0,1,2,3,4]:
-	pression,volume = read_data("/tmp/test"+str(i)+".txt")
-	plt.plot(volume,pression,'.')
+for i in [1,2,3,4,5]:
+	pression,volume = read_data("./ultimi/simulation"+str(i)+".txt")
+	plt.plot(volume,pression)
 	plt.xscale('log')
 	plt.yscale('log')
 plt.show()
